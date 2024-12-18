@@ -4,14 +4,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
+const ratelimeter_1 = require("./ratelimeter");
 const app = (0, express_1.default)();
 const port = 3000;
 // Middleware to parse JSON requests
 app.use(express_1.default.json());
-// Use a properly typed OTP store
+// Use a properly typed OTP
 const otpStore = {};
 // Generate OTP Route
-app.post('/generate-otp', (req, res) => {
+app.post('/generate-otp', ratelimeter_1.otpLimiter, (req, res) => {
     const email = req.body.email;
     if (!email) {
         return res.status(400).json({ message: "Email is required" });
@@ -22,7 +23,7 @@ app.post('/generate-otp', (req, res) => {
     res.status(200).json({ message: "OTP generated and logged" });
 });
 // Reset Password Route
-app.post('/reset-password', (req, res) => {
+app.post('/reset-password', ratelimeter_1.passwordResetLimiter, (req, res) => {
     const { email, otp, newPassword } = req.body;
     if (!email || !otp || !newPassword) {
         return res.status(400).json({ message: "Email, OTP, and new password are required" });
